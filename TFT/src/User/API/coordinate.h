@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include <stdbool.h>
-#include "variants.h"
+#include <stdint.h>
 
 typedef enum
 {
@@ -41,9 +41,7 @@ void coordinateSetExtruderActualSteps(float steps);
 float coordinateGetAxisActual(AXIS axis);
 void coordinateSetAxisActual(AXIS axis, float position);
 void coordinateQuerySetWait(bool wait);
-void coordinateQuery(void);
-float GetLevelCornerPosition(int point);
-void  SetLevelCornerPosition(int point, float position);
+void coordinateQuery(uint8_t delay);
 
 #ifdef __cplusplus
 }

@@ -25,7 +25,7 @@ const MENUITEMS settingsItems = {
 //   {1 * LCD_WIDTH / 3, 1 * BYTE_HEIGHT},
 //   {2 * LCD_WIDTH / 3, 1 * BYTE_HEIGHT},};
 
-static uint8_t firmare_name[64] = "Unknow system";  // Marlin firmware version
+static uint8_t firmare_name[64] = "Unknown system";  // Marlin firmware version
 uint8_t machine_type[64] = "3D Printer";  // Marlin machine type
 uint8_t access_point[64] = "Connecting...";  // Access point for RepRapFirmware
 uint8_t ip_address[20] = "0.0.0.0";  // IP address for RepRapFirmware
@@ -110,7 +110,7 @@ void menuInfo(void)
 
   // GUI_HLine(0, clocks[5].y + BYTE_HEIGHT, LCD_WIDTH);
 
-  //spi flash info
+  // spi flash info
   float usedMB = (float)FLASH_USED/1048576;
   sprintf(buf, "Used %.2f%% (%.2fMB/%uMB)", flashUsedPercentage(), usedMB, (W25Qxx_ReadCapacity()/1048576));
 
@@ -124,8 +124,9 @@ void menuInfo(void)
     {start_x, top_y + 6*BYTE_HEIGHT, LCD_WIDTH, top_y + 7*BYTE_HEIGHT},
     {start_x, top_y + 7*BYTE_HEIGHT, LCD_WIDTH, top_y + 8*BYTE_HEIGHT},
     {start_x, top_y + 8*BYTE_HEIGHT, LCD_WIDTH, top_y + 9*BYTE_HEIGHT},
-    };
-  //draw titles
+  };
+
+  // draw titles
   GUI_DispString(0, version[0].y0, (uint8_t *)"System  :");
   GUI_DispString(0, version[1].y0, (uint8_t *)"Machine :");
   GUI_DispString(0, version[2].y0, (uint8_t *)"Board   :");
@@ -137,7 +138,7 @@ void menuInfo(void)
     GUI_DispString(0, version[6].y0, (uint8_t *)"IP      :");
   }
 
-  //draw info
+  // draw info
   GUI_SetColor(0xDB40);
   GUI_DispStringInPrectEOL(&version[0], firmare_name);
   GUI_DispStringInPrectEOL(&version[1], machine_type);
@@ -157,6 +158,7 @@ void menuInfo(void)
   GUI_DispStringInRect(20, LCD_HEIGHT - (BYTE_HEIGHT*2), LCD_WIDTH-20, LCD_HEIGHT, textSelect(LABEL_TOUCH_TO_EXIT));
 
   while (!isPress()) loopBackEnd();
+  BUZZER_PLAY(sound_keypress);
   while (isPress()) loopBackEnd();
 
   GUI_RestoreColorDefault();

@@ -1,6 +1,6 @@
 #include "menu.h"
 #include "includes.h"
-#include "list_item.h"
+#include "ListItem.h"
 #include "Notification.h"
 
 // exhibitRect is 2 ICON Space in the Upper Row and 2 Center column.
@@ -227,7 +227,7 @@ void GUI_RestoreColorDefault(void)
   GUI_SetColor(infoSettings.font_color);
   GUI_SetTextMode(GUI_TEXTMODE_NORMAL);
   GUI_SetNumMode(GUI_NUMMODE_SPACE);
-  setLargeFont(false);
+  setFontSize(FONT_SIZE_NORMAL);
 }
 
 static const MENUITEMS *curMenuItems = NULL;  //current menu
@@ -266,17 +266,8 @@ uint8_t *labelGetAddress(const LABEL *label)
 
 void menuDrawItem(const ITEM *item, uint8_t position)
 {
-  uint8_t *content = labelGetAddress(&item->label);
-  const GUI_RECT *rect = curRect + position;
-  if (item->icon != ICON_BACKGROUND)
-    ICON_ReadDisplay(rect->x0, rect->y0, item->icon);
-  else
-    GUI_ClearPrect(rect);
-
-  rect = curRect + ITEM_PER_PAGE + position;
-  GUI_ClearPrect(rect);
-  if (content)
-    GUI_DispStringInPrect(rect, content);
+  menuDrawIconOnly(item, position);
+  menuDrawIconText(item, position);
 }
 
 void menuDrawIconOnly(const ITEM *item, uint8_t position)
@@ -288,10 +279,19 @@ void menuDrawIconOnly(const ITEM *item, uint8_t position)
     GUI_ClearPrect(rect);
 }
 
+void menuDrawIconText(const ITEM *item, uint8_t position)
+{
+  uint8_t *content = labelGetAddress(&item->label);
+  const GUI_RECT *rect = curRect + ITEM_PER_PAGE + position;
+  GUI_ClearPrect(rect);
+  if (content)
+    GUI_DispStringInPrect(rect, content);
+}
+
  void menuDrawListItem(const LISTITEM *item, uint8_t position)
 {
   const GUI_RECT *rect = rect_of_keyListView + position;
-  if (item->icon == ICONCHAR_BACKGROUND)
+  if (item->icon == CHARICON_BACKGROUND)
   {
     GUI_ClearPrect(rect);
   }
@@ -500,18 +500,21 @@ void menuReDrawCurTitle(void)
 {
   if (menuType == MENU_TYPE_LISTVIEW)
   {
-    if (curListItems == NULL) return;
+    if (curListItems == NULL)
+      return;
     if (curListItems->title.index < LABEL_BACKGROUND)
-    menuDrawTitle(labelGetAddress(&curListItems->title));
+      menuDrawTitle(labelGetAddress(&curListItems->title));
   }
   else if (menuType == MENU_TYPE_ICON)
   {
-    if (curMenuItems == NULL) return;
+    if (curMenuItems == NULL)
+      return;
     menuDrawTitle(labelGetAddress(&curMenuItems->title));
   }
   else if (menuType == MENU_TYPE_FULLSCREEN)
   {
-    if (curMenuRedrawHandle != NULL) curMenuRedrawHandle();
+    if (curMenuRedrawHandle != NULL)
+      curMenuRedrawHandle();
   }
   else if (menuType == MENU_TYPE_OTHER)
   {
@@ -528,9 +531,9 @@ void menuDrawPage(const MENUITEMS *menuItems)
   TSC_ReDrawIcon = itemDrawIconPress;
   curMenuRedrawHandle = NULL;
 
-  curRect = ((infoMenu.menu[infoMenu.cur] == menuStatus) || ((infoMenu.menu[infoMenu.cur] == menuPrinting) && !isPrinting())) ? rect_of_keySS : rect_of_key;
+  curRect = ((infoMenu.menu[infoMenu.cur] == menuStatus) ||
+             ((infoMenu.menu[infoMenu.cur] == menuPrinting) && !isPrinting())) ? rect_of_keySS : rect_of_key;
 
-  //GUI_Clear(BLACK);
   menuClearGaps();  // Use this function instead of GUI_Clear to eliminate the splash screen when clearing the screen.
   menuDrawTitle(labelGetAddress(&menuItems->title));
   for (i = 0; i < ITEM_PER_PAGE; i++)
@@ -554,15 +557,15 @@ void menuDrawListPage(const LISTITEMS *listItems)
   GUI_SetBkColor(infoSettings.bg_color);
   GUI_ClearRect(0, TITLE_END_Y, LCD_WIDTH, LCD_HEIGHT);
 
-  //menuClearGaps();  //Use this function instead of GUI_Clear to eliminate the splash screen when clearing the screen.
+  //menuClearGaps();  // Use this function instead of GUI_Clear to eliminate the splash screen when clearing the screen.
   menuDrawTitle(labelGetAddress(&listItems->title));
 
   for (i = 0; i < ITEM_PER_PAGE; i++)
   {
     //const GUI_RECT *rect = rect_of_keyListView + i;
-    if (curListItems->items[i].icon != ICONCHAR_BACKGROUND)
+    if (curListItems->items[i].icon != CHARICON_BACKGROUND)
       menuDrawListItem(&curListItems->items[i], i);
-    RAPID_PRINTING_COMM()  //perform backend printing loop between drawing icons to avoid printer idling
+    RAPID_PRINTING_COMM()  // perform backend printing loop between drawing icons to avoid printer idling
   }
 }
 
@@ -596,7 +599,7 @@ void showLiveInfo(uint8_t index, const LIVE_INFO * liveicon, const ITEM * item)
         loc.y = liveicon->lines[i].pos.y + curRect[index].y0;
       }
 
-      setLargeFont(liveicon->lines[i].large_font);
+      setFontSize(liveicon->lines[i].font);
 
       switch (liveicon->lines[i].h_align)
       {
@@ -619,31 +622,6 @@ void showLiveInfo(uint8_t index, const LIVE_INFO * liveicon, const ITEM * item)
   }
   GUI_RestoreColorDefault();
 }  //showLiveInfo
-
-//Show live info text on icons for LevelCorner
-void showLevelCornerLiveInfo(uint8_t index, uint8_t Levelindex, const LIVE_INFO * liveicon, const ITEM * item)
-{
-  const GUI_RECT *rect = curRect + ITEM_PER_PAGE + index;
-  GUI_ClearPrect(rect);
-  if (item != NULL) menuDrawIconOnly(item,index);
-  GUI_DispStringInPrect(rect, liveicon->lines[Levelindex].text);
-} //showLevelCornerLiveInfo
-
-//Show text on icons (used in LevelCorner with ICON_BLTOUCH unified)
-void showTextOnIcon(uint8_t index, uint8_t Levelindex, const LIVE_INFO * liveicon, const ITEM * item)
-{
-  if (item != NULL) menuDrawIconOnly(item,index);
-  GUI_SetColor(ORANGE);
-  GUI_SetTextMode(GUI_TEXTMODE_TRANS);
-  GUI_POINT loc;
-  loc.x = liveicon->lines[Levelindex].pos.x + curRect[index].x0 - 4;
-  loc.y = liveicon->lines[Levelindex].pos.y + curRect[index].y0 - 6;
-  setLargeFont(VAL_LARGE_FONT);
-  GUI_DispStringCenter(loc.x, loc.y, liveicon->lines[Levelindex].text);
-  GUI_SetColor(WHITE);
-  GUI_DispStringCenter(loc.x - 2, loc.y - 2, liveicon->lines[Levelindex].text);
-  GUI_RestoreColorDefault();
-} //showTextOnIcon
 
 //When there is a button value, the icon changes color and redraws
 void itemDrawIconPress(uint8_t position, uint8_t is_press)
@@ -669,7 +647,7 @@ void itemDrawIconPress(uint8_t position, uint8_t is_press)
 
     const GUI_RECT *rect = rect_of_keyListView + position;
 
-    if (curListItems->items[position].icon == ICONCHAR_BACKGROUND)
+    if (curListItems->items[position].icon == CHARICON_BACKGROUND)
     {
       GUI_ClearPrect(rect);
       return;
@@ -685,6 +663,7 @@ void itemDrawIconPress(uint8_t position, uint8_t is_press)
 KEY_VALUES menuKeyGetValue(void)
 {
   KEY_VALUES tempkey = KEY_IDLE;
+
   if (menuType == MENU_TYPE_ICON)
   {
     if ((infoMenu.menu[infoMenu.cur] == menuStatus) || ((infoMenu.menu[infoMenu.cur] == menuPrinting) && !isPrinting()))
@@ -737,7 +716,7 @@ KEY_VALUES menuKeyGetValue(void)
 //Get the top left point of the corresponding icon position)
 GUI_POINT getIconStartPoint(int index)
 {
-  GUI_POINT p = {curRect[index].x0,curRect[index].y0};
+  GUI_POINT p = {curRect[index].x0, curRect[index].y0};
   return p;
 }
 
@@ -774,7 +753,7 @@ GUI_POINT getIconStartPoint(int index)
       return;
     }
     #endif
- 
+
     if (longPress == false)  // check if longpress already handled
     {
       if (LCD_ReadPen(LONG_TOUCH))  // check if TSC is pressed and held
@@ -782,6 +761,7 @@ GUI_POINT getIconStartPoint(int index)
         longPress = true;
         touchSound = false;
         KEY_VALUES tempKey = KEY_IDLE;
+
         if (infoMenu.menu[infoMenu.cur] == menuPrinting)
         {
           tempKey = Key_value(COUNT(rect_of_keySS), rect_of_keySS);

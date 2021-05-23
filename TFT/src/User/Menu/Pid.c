@@ -23,7 +23,7 @@ const char *const pidCmd[] = PID_CMD;
 static int16_t pidHeaterTarget[MAX_HEATER_COUNT] = {0};
 static uint8_t curTool_index = NOZZLE0;
 static uint8_t degreeSteps_index = 1;
-u32 pidTimeout = 0;
+uint32_t pidTimeout = 0;
 uint8_t pidCounter = 0;
 bool pidSucceeded = false;
 bool pidRunning = false;
@@ -255,7 +255,7 @@ void menuPid(void)
         do
         {
           curTool_index = (curTool_index + 1) % MAX_HEATER_COUNT;
-        } while (!heaterIsValid(curTool_index) || curTool_index == CHAMBER);
+        } while (!heaterDisplayIsValid(curTool_index) || curTool_index == CHAMBER);
 
         pidItems.items[key_num] = itemTool[curTool_index];
 
