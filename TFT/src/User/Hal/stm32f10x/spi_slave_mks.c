@@ -1,10 +1,10 @@
 #include "spi_slave.h"
+#include "variants.h"  // for ST7920_EMULATOR etc...
 #include "spi.h"
 #include "GPIO_Init.h"
-#include "stdlib.h"
-#include "stm32f10x_conf.h"
+#include <stdlib.h>
 
-#if defined(MKS_TFT32_V1_3) || defined(MKS_TFT32_V1_4) || defined (MKS_TFT28_V3_0) || defined (MKS_TFT28_V4_0)
+#if defined(MKS_TFT)
 
 #if defined(ST7920_EMULATOR)
 // TODO:
@@ -54,10 +54,10 @@ void SPI_Slave(CIRCULAR_QUEUE *queue)
 
   NVIC_InitTypeDef NVIC_InitStructure;
 
-#ifndef SPI3_PIN_SMART_USAGE                                         // if enabled, it avoids any SPI3 CS pin usage and free the MISO (PB4 pin) for encoder pins
-  SPI_GPIO_Init(ST7920_SPI);
-  GPIO_InitSet(SPI3_CS_PIN, MGPIO_MODE_IPU, 0);                      // CS
-#endif
+  #ifndef SPI3_PIN_SMART_USAGE                                       // if enabled, it avoids any SPI3 CS pin usage and free the MISO (PB4 pin) for encoder pins
+    SPI_GPIO_Init(ST7920_SPI);
+    GPIO_InitSet(SPI3_CS_PIN, MGPIO_MODE_IPN, 0);                    // MKS TFTs already have an external pull-up resistor on PB0 and PB1 pins
+  #endif
 
   NVIC_InitStructure.NVIC_IRQChannel = SPI3_IRQn;
   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
@@ -67,9 +67,9 @@ void SPI_Slave(CIRCULAR_QUEUE *queue)
 
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);
 
-#ifndef SPI3_PIN_SMART_USAGE                                         // if enabled, it avoids any SPI3 CS pin usage and free the MISO (PB4 pin) for encoder pins
-  SPI_Slave_CS_Config();                                             // not needed, you can also comment out this line!
-#endif
+  #ifndef SPI3_PIN_SMART_USAGE                                       // if enabled, it avoids any SPI3 CS pin usage and free the MISO (PB4 pin) for encoder pins
+    SPI_Slave_CS_Config();                                           // not needed, you can also comment out this line!
+  #endif
 
   SPI_ReEnable(0);  // spi mode0
 
@@ -159,4 +159,4 @@ void EXTI1_IRQHandler(void)
 }
 #endif             // endif for #if defined(ST7920_EMULATOR)
 
-#endif             // endif for #if defined(MKS_TFT32_V1_3) || defined(MKS_TFT32_V1_4) || defined (MKS_TFT28_V3_0) || defined (MKS_TFT28_V4_0)
+#endif             // endif for #if defined(MKS_TFT)

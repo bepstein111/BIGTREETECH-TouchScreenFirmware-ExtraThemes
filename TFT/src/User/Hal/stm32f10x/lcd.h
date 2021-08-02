@@ -2,7 +2,7 @@
 #define _LCD_H_
 
 #include <stdint.h>
-#include "variants.h"
+#include "variants.h"  // for STM32_HAS_FSMC etc...
 
 #ifdef STM32_HAS_FSMC
 
@@ -19,7 +19,7 @@
   #define LCD_WR_DATA(data)  do{ LCD->LCD_RAM = data; }while(0)
 
 #else
-  #if defined(MKS_TFT32_V1_3) || defined(MKS_TFT32_V1_4) || defined (MKS_TFT28_V3_0) || defined (MKS_TFT28_V4_0)
+  #if defined(MKS_TFT)
   /*
   #define LCD_WR PB14
   #define LCD_RS PD13

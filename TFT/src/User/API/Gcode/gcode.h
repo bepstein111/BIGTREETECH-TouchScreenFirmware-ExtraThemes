@@ -2,11 +2,11 @@
 #define _GCODE_H_
 
 #include <stdbool.h>
-#include "interfaceCmd.h"
+#include <stdint.h>
 
-#define CMD_MAX_REV 5000
-
+#define CMD_MAX_REV   5000
 #define MAX_ERROR_NUM 3
+
 typedef struct
 {
   char *cmd_rev_buf;       // buffer where store the command response
@@ -23,6 +23,8 @@ typedef struct
 } REQUEST_COMMAND_INFO;
 
 extern REQUEST_COMMAND_INFO requestCommandInfo;
+
+bool isWaitingResponse(void);  // condition callback for loopProcessToCondition()
 
 void clearRequestCommandInfo(void);
 bool requestCommandInfoIsRunning(void);
